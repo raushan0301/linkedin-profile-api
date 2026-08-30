@@ -178,6 +178,20 @@ async def rate_limit_handler(request: Request, exc: LinkedInRateLimitError):
     )
 
 
+@app.exception_handler(Exception)
+async def generic_exception_handler(request: Request, exc: Exception):
+    import traceback
+    logger.error("Unhandled exception: %s", traceback.format_exc())
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": "internal_server_error",
+            "detail": str(exc),
+            "traceback": traceback.format_exc()
+        }
+    )
+
+
 # ── Routes ───────────────────────────────────────────────────────────────────
 
 @app.get("/health")
