@@ -262,3 +262,20 @@ async def get_profile(request: ProfileRequest) -> ProfileResponse:
     profile = parse_profile(raw_data, username)
     logger.info("Successfully returned profile for @%s", username)
     return profile
+
+
+from pydantic import BaseModel
+class DebugRequest(BaseModel):
+    url: str
+
+@app.post("/api/debug", tags=["Debug"])
+async def debug_endpoint(req: DebugRequest):
+    settings = get_settings()
+    from app.linkedin_client import LinkedInClient
+    async with LinkedInClient(settings) as client:
+        # Override the normal base URL and just do a raw request
+        response = await client._client.get(req.url)
+        return {
+            "status": response.status_code,
+            "text": response.text[:1000]
+        }
