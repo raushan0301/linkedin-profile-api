@@ -70,7 +70,7 @@ VOYAGER_HEADERS = {
         '"deviceFormFactor":"DESKTOP","mpName":"voyager-web",'
         '"displayDensity":1,"displayWidth":1920,"displayHeight":1080}'
     ),
-    "accept": "application/vnd.linkedin.normalized+json+2.1",
+    "accept": "application/json",
 }
 
 
