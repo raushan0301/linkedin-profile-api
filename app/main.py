@@ -180,19 +180,26 @@ async def rate_limit_handler(request: Request, exc: LinkedInRateLimitError):
 
 # ── Routes ───────────────────────────────────────────────────────────────────
 
-@app.get("/health", tags=["Meta"])
+@app.get("/health")
 async def health_check():
     """
-    Liveness probe endpoint.
-    Returns 200 if the server is running and credentials are configured.
-    Also reports which authentication mode is active.
+    Returns 200 OK if the API is running and has a valid session.
+    Used for uptime monitoring and deployment health checks.
     """
     settings = get_settings()
+    auth_mode = "programmatic" if settings.use_programmatic_auth else "cookie"
     return {
         "status": "ok",
-        "auth_mode": "programmatic" if settings.use_programmatic_auth else "cookie",
+        "auth_mode": auth_mode,
         "session_active": bool(settings.li_at),
     }
+
+
+@app.get("/")
+async def root():
+    """Redirect root to the Swagger documentation."""
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/docs")
 
 
 @app.post(
