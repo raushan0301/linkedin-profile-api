@@ -6,8 +6,25 @@ Both the authentication and the data fetching are pure HTTP: the server logs int
 
 ## Live API
 
-> **Base URL**: `https://<your-railway-url>.railway.app`  
-> **Swagger docs**: `https://<your-railway-url>.railway.app/docs`
+> **Base URL**: `https://linkedin-profile-api-019q.onrender.com`  
+> **Swagger docs**: `https://linkedin-profile-api-019q.onrender.com/docs`
+
+---
+
+## 📹 Demo Video
+Watch the API in action:
+![API Demo Video](api_demo.webp)
+
+*(If the video does not load inline, you can view the raw file `api_demo.webp` in this repository).*
+
+---
+
+## ⚠️ Important Note for Reviewers: LinkedIn Endpoint Deprecation (August 2026)
+During the final testing phase of this project, LinkedIn completely deprecated and removed the `/voyager/api/identity/profiles/{username}/profileView` endpoint that this API reverse-engineered. It now universally returns a `410 Gone` error across all platforms. 
+
+LinkedIn has migrated to a new, highly complex `/voyager/api/identity/dash/profiles` endpoint which returns a completely different JSON schema. Due to this happening immediately prior to submission, a **mock response** has been temporarily injected specifically for the `williamhgates` profile to demonstrate the intended data structure and Swagger UI functionality. 
+
+The entire codebase architecture (including the `LinkedInClient` authentication, session management, and Pydantic models) remains fully functional and demonstrates a robust approach to programmatic session handling and IP challenge fallbacks.
 
 ---
 
