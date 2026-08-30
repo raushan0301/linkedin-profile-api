@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: linkedin-profile-api
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: LINKEDIN_EMAIL
+        sync: false   # You'll set this in the Render dashboard (not stored in repo)
+      - key: LINKEDIN_PASSWORD
+        sync: false   # You'll set this in the Render dashboard (not stored in repo)
