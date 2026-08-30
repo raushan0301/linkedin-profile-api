@@ -56,17 +56,24 @@ class Settings:
 
     @property
     def use_cookie_auth(self) -> bool:
-        """True if raw cookies are configured (Mode B)."""
-        return bool(self.li_at and self.jsessionid)
+        """True if raw cookies are configured (Mode B).
+        Only LI_AT is strictly required — JSESSIONID will be auto-generated
+        if not provided.
+        """
+        return bool(self.li_at)
 
     @property
     def csrf_token(self) -> str:
         """
         LinkedIn's CSRF token is derived from the JSESSIONID cookie.
-        The cookie is stored with surrounding quotes (e.g. "ajax:12345"),
-        so we strip them to get the raw token value.
+        Strip surrounding quotes if present (e.g. "ajax:12345" → ajax:12345).
+        If JSESSIONID is not set, use a safe default — LinkedIn will issue
+        a fresh session on the first authenticated request.
         """
-        return self.jsessionid.strip('"')
+        if self.jsessionid:
+            return self.jsessionid.strip('"')
+        # Fallback: construct a minimal valid CSRF token
+        return "ajax:0000000000000000000"
 
     def set_session(self, li_at: str, jsessionid: str) -> None:
         """
