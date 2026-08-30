@@ -36,8 +36,9 @@ class Settings:
         self.linkedin_password: str = os.getenv("LINKEDIN_PASSWORD", "")
 
         # Mode B: raw session cookies (manual fallback)
-        self.li_at: str = os.getenv("LI_AT", "")
-        self.jsessionid: str = os.getenv("JSESSIONID", "")
+        # Accept both LI_AT and li_at — hosting platforms vary in case conventions
+        self.li_at: str = os.getenv("LI_AT") or os.getenv("li_at", "")
+        self.jsessionid: str = os.getenv("JSESSIONID") or os.getenv("jsessionid", "")
 
         # HTTP client settings
         self.user_agent: str = os.getenv(
