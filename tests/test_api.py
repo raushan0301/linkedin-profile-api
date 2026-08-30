@@ -433,34 +433,33 @@ class TestLinkedInAuth:
         assert result["li_at"] == "mock_li_at_token"
 
     @pytest.mark.asyncio
-    async def test_challenge_url_raises_challenge_error(self):
+    async def test_challenge_response_raises_challenge_error(self):
         """
-        If LinkedIn redirects to a checkpoint/challenge URL after login,
-        we should raise LinkedInChallengeError — not silently return bad tokens.
+        Mobile API returns HTTP 401 with 'challenge' in the body when
+        LinkedIn requires 2FA or CAPTCHA. We should raise LinkedInChallengeError.
         """
         from app.auth import login, LinkedInChallengeError
 
-        mock_login_response = MagicMock()
-        mock_login_response.status_code = 200
-        mock_login_response.text = self.MOCK_LOGIN_HTML
+        # Step 1: session init succeeds, returns JSESSIONID
+        mock_init_response = MagicMock()
+        mock_init_response.status_code = 200
 
-        mock_submit_response = MagicMock()
-        mock_submit_response.status_code = 200
-        # LinkedIn redirects to challenge page instead of feed
-        mock_submit_response.url = httpx.URL(
-            "https://www.linkedin.com/checkpoint/challenge/verify"
-        )
+        # Step 2: credential submission returns 401 with challenge body
+        mock_auth_response = MagicMock()
+        mock_auth_response.status_code = 401
+        mock_auth_response.text = '{"status": 401, "message": "challenge required", "serviceErrorCode": 65}"}'
 
         mock_client = AsyncMock()
-        mock_client.get = AsyncMock(return_value=mock_login_response)
-        mock_client.post = AsyncMock(return_value=mock_submit_response)
-        mock_client.cookies = {}
+        mock_client.get = AsyncMock(return_value=mock_init_response)
+        mock_client.post = AsyncMock(return_value=mock_auth_response)
+        mock_client.cookies = MagicMock()
+        mock_client.cookies.get = MagicMock(side_effect=lambda k: "ajax:test" if k == "JSESSIONID" else None)
         mock_client.__aenter__ = AsyncMock(return_value=mock_client)
         mock_client.__aexit__ = AsyncMock(return_value=None)
 
         with patch("app.auth.httpx.AsyncClient", return_value=mock_client):
             with pytest.raises(LinkedInChallengeError):
-                await login("user@example.com", "wrongpassword")
+                await login("user@example.com", "correctpassword")
 
     @pytest.mark.asyncio
     async def test_missing_csrf_raises_login_error(self):
