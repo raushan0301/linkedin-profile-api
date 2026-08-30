@@ -49,20 +49,24 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    On startup:
-    - If LINKEDIN_EMAIL + LINKEDIN_PASSWORD are set: authenticate
-      programmatically using the reverse-engineered login flow.
-      No browser is opened — this is pure HTTP.
-    - If LI_AT + JSESSIONID are set instead: use those directly (manual
-      cookie fallback mode).
-    Either way, validate that usable credentials are present before
-    accepting any traffic.
+    Startup authentication strategy (in priority order):
+
+    1. LINKEDIN_EMAIL + LINKEDIN_PASSWORD → programmatic mobile API login.
+       Works on most IPs. May fail on cloud datacenter IPs blocked by LinkedIn.
+
+    2. If programmatic login fails due to an IP challenge → automatically
+       fall back to cookie mode if LI_AT is also configured.
+
+    3. LI_AT + JSESSIONID only → cookie mode directly.
+
+    This means you can configure ALL env vars (email + password + cookies)
+    and the server always starts — using whichever method works.
     """
     settings = get_settings()
 
     if settings.use_programmatic_auth:
         logger.info(
-            "Programmatic auth mode — logging into LinkedIn as %s (no browser)...",
+            "Attempting programmatic auth for %s via LinkedIn mobile API...",
             settings.linkedin_email,
         )
         try:
@@ -71,17 +75,36 @@ async def lifespan(app: FastAPI):
                 settings.linkedin_password,
             )
             settings.set_session(session["li_at"], session["jsessionid"])
-            logger.info("LinkedIn login successful — session established.")
-        except LinkedInChallengeError as exc:
-            logger.error("LinkedIn challenge required: %s", exc)
-            raise RuntimeError(str(exc)) from exc
-        except LinkedInLoginError as exc:
-            logger.error("LinkedIn login failed: %s", exc)
-            raise RuntimeError(str(exc)) from exc
+            logger.info("✅ Programmatic login successful — session ready.")
+
+        except (LinkedInChallengeError, LinkedInLoginError) as exc:
+            # Programmatic login blocked (IP challenge or bad credentials).
+            # Check if raw cookies are also configured as a fallback.
+            if settings.use_cookie_auth:
+                logger.warning(
+                    "⚠️  Programmatic login blocked (%s: %s). "
+                    "Falling back to cookie auth (LI_AT configured).",
+                    type(exc).__name__, exc,
+                )
+                logger.info("✅ Cookie auth mode active — session ready.")
+            else:
+                # No fallback available — fail loudly with a clear message
+                logger.error(
+                    "❌ Auth failed and no cookie fallback configured.\n"
+                    "Fix: add LI_AT and JSESSIONID to your environment variables.\n"
+                    "Get them from: Chrome → linkedin.com → DevTools → "
+                    "Application → Cookies → www.linkedin.com\n"
+                    "Error: %s", exc,
+                )
+                raise RuntimeError(
+                    f"LinkedIn authentication failed: {exc}\n\n"
+                    "Add LI_AT and JSESSIONID env vars as a fallback. "
+                    "See .env.example for instructions."
+                ) from exc
     else:
         logger.info(
-            "Cookie auth mode — using provided li_at token (%s...).",
-            settings.li_at[:8],
+            "✅ Cookie auth mode — using li_at token (%s...).",
+            settings.li_at[:8] if settings.li_at else "NOT SET",
         )
 
     yield
