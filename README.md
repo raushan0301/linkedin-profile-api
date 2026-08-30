@@ -13,9 +13,9 @@ Both the authentication and the data fetching are pure HTTP: the server logs int
 
 ## 📹 Demo Video
 Watch the API in action:
-![API Demo Video](api_demo.webp)
+![API Demo Video](demo.mov)
 
-*(If the video does not load inline, you can view the raw file `api_demo.webp` in this repository).*
+*(If the video does not load inline, you can view the raw file `demo.mov` in this repository).*
 
 ---
 
