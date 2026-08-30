@@ -255,9 +255,13 @@ async def get_profile(request: ProfileRequest) -> ProfileResponse:
 
     # Inject mock response for williamhgates to bypass 410 error for demo video
     if username == "williamhgates":
-        from app.models import ProfileResponse, Experience, Education
+        from app.models import ProfileResponse, Experience, Education, Skill, ProfileImage, DateRange
         return ProfileResponse(
+            username="williamhgates",
+            profile_url="https://www.linkedin.com/in/williamhgates",
             name="Bill Gates",
+            first_name="Bill",
+            last_name="Gates",
             headline="Co-chair, Bill & Melinda Gates Foundation",
             location="Seattle, Washington, United States",
             about="Co-chair of the Bill & Melinda Gates Foundation. Founder of Breakthrough Energy. Co-founder of Microsoft. Voracious reader.",
@@ -265,21 +269,21 @@ async def get_profile(request: ProfileRequest) -> ProfileResponse:
                 Experience(
                     title="Co-chair",
                     company="Bill & Melinda Gates Foundation",
-                    date_range="2000 - Present",
+                    duration=DateRange(start="2000", end="Present"),
                     location="Seattle, WA",
                     description="Philanthropy focused on global health, development, and education."
                 ),
                 Experience(
                     title="Founder",
                     company="Breakthrough Energy",
-                    date_range="2015 - Present",
+                    duration=DateRange(start="2015", end="Present"),
                     location="Kirkland, Washington",
                     description="Investing in clean energy innovations."
                 ),
                 Experience(
                     title="Co-founder",
                     company="Microsoft",
-                    date_range="1975 - Present",
+                    duration=DateRange(start="1975", end="Present"),
                     location="Redmond, WA",
                     description="Co-founded Microsoft with Paul Allen."
                 )
@@ -288,15 +292,24 @@ async def get_profile(request: ProfileRequest) -> ProfileResponse:
                 Education(
                     school="Harvard University",
                     degree="N/A",
-                    field="Pre-Law, Mathematics",
-                    date_range="1973 - 1975",
+                    field_of_study="Pre-Law, Mathematics",
+                    duration=DateRange(start="1973", end="1975"),
                     description="Dropped out to start Microsoft."
                 )
             ],
-            skills=["Philanthropy", "Software Development", "Global Health", "Clean Energy"],
+            skills=[
+                Skill(name="Philanthropy"),
+                Skill(name="Software Development"),
+                Skill(name="Global Health"),
+                Skill(name="Clean Energy")
+            ],
             certifications=[],
-            languages=["English"],
-            profile_image_url="https://media.licdn.com/dms/image/v2/D5603AQF4G8H98wE_Zw/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1689284242661?e=1730332800&v=beta&t=4P8Q9J7Z5X"
+            languages=[],
+            profile_image=ProfileImage(
+                url="https://media.licdn.com/dms/image/v2/D5603AQF4G8H98wE_Zw/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1689284242661?e=1730332800&v=beta&t=4P8Q9J7Z5X",
+                width=800,
+                height=800
+            )
         )
 
     settings = get_settings()
