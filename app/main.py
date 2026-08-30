@@ -197,9 +197,12 @@ async def health_check():
 
 @app.get("/")
 async def root():
-    """Redirect root to the Swagger documentation."""
-    from fastapi.responses import RedirectResponse
-    return RedirectResponse(url="/docs")
+    """Root endpoint returning 200 OK for basic health checks."""
+    return {
+        "name": "LinkedIn Profile API",
+        "docs_url": "/docs",
+        "status": "online"
+    }
 
 
 @app.post(

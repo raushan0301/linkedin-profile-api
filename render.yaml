@@ -3,6 +3,7 @@ services:
     name: linkedin-profile-api
     runtime: docker
     plan: free
+    healthCheckPath: /health
     envVars:
       - key: LINKEDIN_EMAIL
         sync: false
